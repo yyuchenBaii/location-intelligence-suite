@@ -1,37 +1,23 @@
-import os
-import sys
+import argparse
 import json
-import ssl
-import urllib.request
-from urllib.parse import urlencode
+import time
 
-# macOS Python 3.12 SSL workaround
-_SSL_CTX = ssl._create_unverified_context()
-
-# 【使用说明】
-# 升级版竞品深度扫描脚本 — 充分利用 place/around extensions=all 已返回的 biz_ext 字段
-# 新增输出字段：price_distribution（价格带分布）、rating_avg、top_threats、business_area 覆盖度
-# 用法：python fetch_amap_poi.py "<经度,纬度>" "<业态关键字>" [半径米数，默认2000]
-
-AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY")
+from amap_client import place_around, place_detail, place_polygon, place_text, require_key
 
 
 def _classify_price(cost_str):
-    """将 biz_ext.cost 字符串转换为价格带标签"""
     try:
         cost = float(cost_str)
         if cost < 20:
             return "cheap"
-        elif cost <= 50:
+        if cost <= 50:
             return "moderate"
-        else:
-            return "expensive"
+        return "expensive"
     except (ValueError, TypeError):
         return "unknown"
 
 
 def _threat_level(rating, distance_m):
-    """评估单个竞品的威胁等级"""
     try:
         r = float(rating)
         d = int(distance_m)
@@ -40,70 +26,101 @@ def _threat_level(rating, distance_m):
 
     if r >= 4.5 and d <= 200:
         return "极高"
-    elif r >= 4.0 and d <= 500:
+    if r >= 4.0 and d <= 500:
         return "高"
-    elif r >= 3.5 and d <= 1000:
+    if r >= 3.5 and d <= 1000:
         return "中"
-    else:
-        return "低"
+    return "低"
 
 
-def fetch_poi_data(location, keywords, radius=2000):
-    """
-    调用高德周边搜索 API，深度解析 biz_ext 字段
-    :param location: 经纬度字符串 "119.967,30.380"
-    :param keywords: 搜索关键字，例如 "咖啡" 或 "居酒屋"
-    :param radius: 搜索半径（米），默认 2000
-    """
+def _fetch_pages(mode, *, location=None, keywords=None, radius=2000, polygon=None, city=None, adcode=None):
     all_pois = []
     total_count = 0
+    last_exception = None
 
-    import time
-    # 多页抓取（最多 3 页 × 50 条 = 150 条），避免只取 50 条时数据截断
     for page in range(1, 4):
         if page > 1:
-            time.sleep(0.5)
-        url = "https://restapi.amap.com/v3/place/around"
-        params = {
-            "key": AMAP_WEB_KEY,
-            "location": location,
-            "keywords": keywords,
-            "radius": radius,
-            "extensions": "all",   # 必须 all 才能拿到 biz_ext
-            "output": "json",
-            "offset": 50,
-            "page": page,
-            "sortrule": "distance",
-        }
-        try:
-            req = urllib.request.Request(
-                f"{url}?{urlencode(params)}"
+            time.sleep(0.4)
+
+        if mode == "polygon":
+            result = place_polygon(polygon, keywords=keywords, offset=50, page=page)
+        elif mode == "text":
+            target_city = adcode or city
+            result = place_text(keywords, city=target_city, citylimit=True, offset=50, page=page)
+        else:
+            result = place_around(
+                location,
+                keywords=keywords,
+                radius=radius,
+                extensions="all",
+                offset=50,
+                page=page,
             )
-            with urllib.request.urlopen(req, context=_SSL_CTX, timeout=8) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
-        except Exception as e:
-            break
 
         if result.get("status") != "1":
-            return {"error": "高德 API 返回失败", "info": result.get("info")}
+            last_exception = result.get("info") or result.get("_error") or "高德接口失败"
+            break
 
-        pois = result.get("pois", [])
+        pois = result.get("pois") or []
         if page == 1:
             total_count = int(result.get("count", 0))
         all_pois.extend(pois)
-        if len(pois) < 50:  # 最后一页不足50条，停止翻页
+        if len(pois) < 50:
             break
 
-    if not all_pois:
-        return {"error": "未找到任何竞品 POI", "search_keyword": keywords}
+    return all_pois, total_count, last_exception
 
-    # ── 价格带分布 ──────────────────────────────────────────────
+
+def _fetch_detail_map(pois):
+    details = {}
+    for item in pois[:8]:
+        poiid = item.get("id")
+        if not poiid:
+            continue
+        detail = place_detail(poiid)
+        if detail.get("status") != "1":
+            continue
+        detailed_pois = detail.get("pois") or []
+        if detailed_pois:
+            details[poiid] = detailed_pois[0]
+    return details
+
+
+def fetch_poi_data(location=None, keywords=None, radius=2000, polygon=None, city=None, adcode=None, mode="around"):
+    key_error = require_key()
+    if key_error:
+        return key_error
+
+    if mode == "polygon" and not polygon:
+        return {"error": "polygon 模式必须提供 --polygon"}
+    if mode == "around" and not location:
+        return {"error": "around 模式必须提供 location"}
+    if mode == "text" and not (city or adcode):
+        return {"error": "text 模式必须提供 --city 或 --adcode"}
+
+    all_pois, total_count, last_exception = _fetch_pages(
+        mode,
+        location=location,
+        keywords=keywords,
+        radius=radius,
+        polygon=polygon,
+        city=city,
+        adcode=adcode,
+    )
+
+    if not all_pois:
+        return {
+            "error": "未找到符合条件的 POI" if not last_exception else "高德请求失败，未能完成 POI 扫描",
+            "search_keyword": keywords,
+            "details": last_exception,
+        }
+
     price_dist = {"expensive": 0, "moderate": 0, "cheap": 0, "unknown": 0}
     ratings = []
     business_areas = set()
 
-    for p in all_pois:
-        biz = p.get("biz_ext", {})
+    for poi in all_pois:
+        biz = poi.get("biz_ext", {})
         price_dist[_classify_price(biz.get("cost", ""))] += 1
         rating = biz.get("rating", "")
         if rating and rating not in ("[]", "暂无"):
@@ -111,105 +128,125 @@ def fetch_poi_data(location, keywords, radius=2000):
                 ratings.append(float(rating))
             except ValueError:
                 pass
-        ba = p.get("business_area", "")
-        if ba:
-            business_areas.add(ba)
+        if poi.get("business_area"):
+            business_areas.add(poi.get("business_area"))
 
     rating_avg = round(sum(ratings) / len(ratings), 1) if ratings else None
-
-    # ── TOP 威胁（距离 <500m 且评分 ≥4.0）──────────────────────
     top_threats = []
-    for p in all_pois:
-        biz = p.get("biz_ext", {})
-        dist = p.get("distance", "9999")
+    for poi in all_pois:
+        biz = poi.get("biz_ext", {})
+        dist = poi.get("distance", "9999")
         rating = biz.get("rating", "")
         cost = biz.get("cost", "")
         try:
             if int(dist) <= 500 and float(rating) >= 4.0:
-                top_threats.append({
-                    "name": p["name"],
-                    "distance_m": int(dist),
-                    "rating": float(rating),
-                    "avg_cost_yuan": float(cost) if cost else None,
-                    "business_area": p.get("business_area", ""),
-                    "threat_level": _threat_level(rating, dist),
-                    "location": p.get("location", ""),
-                })
+                top_threats.append(
+                    {
+                        "id": poi.get("id", ""),
+                        "name": poi["name"],
+                        "distance_m": int(dist),
+                        "rating": float(rating),
+                        "avg_cost_yuan": float(cost) if cost else None,
+                        "business_area": poi.get("business_area", ""),
+                        "threat_level": _threat_level(rating, dist),
+                        "location": poi.get("location", ""),
+                    }
+                )
         except (ValueError, TypeError):
             continue
 
-    top_threats.sort(key=lambda x: (-{"极高": 4, "高": 3, "中": 2, "低": 1}.get(x["threat_level"], 0), x["distance_m"]))
+    top_threats.sort(
+        key=lambda item: (
+            -{"极高": 4, "高": 3, "中": 2, "低": 1}.get(item["threat_level"], 0),
+            item["distance_m"],
+        )
+    )
 
-    # ── 最近竞品（无论评分）────────────────────────────────────
+    detail_map = _fetch_detail_map(all_pois)
     closest = all_pois[0]
     closest_biz = closest.get("biz_ext", {})
 
     return {
         "search_keyword": keywords,
-        "search_radius_meters": radius,
+        "search_mode": mode,
+        "search_radius_meters": radius if mode == "around" else None,
+        "search_polygon": polygon if mode == "polygon" else None,
+        "search_city": city,
+        "search_adcode": adcode,
         "total_competitors_found": total_count,
         "fetched_sample_size": len(all_pois),
-
-        # 最近对手
         "closest_competitor": {
+            "id": closest.get("id", ""),
             "name": closest["name"],
-            "distance_m": int(closest.get("distance", 0)),
+            "distance_m": int(closest.get("distance", 0)) if str(closest.get("distance", "")).isdigit() else None,
             "rating": closest_biz.get("rating", "暂无"),
             "avg_cost_yuan": closest_biz.get("cost", "暂无"),
             "business_area": closest.get("business_area", ""),
             "location": closest.get("location", ""),
+            "detail": detail_map.get(closest.get("id", ""), {}),
         },
-
-        # 竞争总体评级
         "competition_level": (
-            "🔥 极度红海" if total_count > 50 else
-            "⚠️ 存在显著竞争" if total_count > 20 else
-            "🟢 局部蓝海"
+            "🔥 极度红海" if total_count > 50 else "⚠️ 存在显著竞争" if total_count > 20 else "🟢 局部蓝海"
         ),
-
-        # 价格带分布（真实数据，可直接引用）
         "price_distribution": price_dist,
         "price_insight": (
             f"区域内{price_dist['cheap']}家低价(<20元) / "
             f"{price_dist['moderate']}家中档(20-50元) / "
             f"{price_dist['expensive']}家高端(>50元)"
         ),
-
-        # 评分概况
         "rating_avg": rating_avg,
-        "high_quality_count": len([r for r in ratings if r >= 4.0]),
-
-        # 极高/高 威胁竞品（500m内评分≥4.0）
-        "top_threats": top_threats[:8],
+        "high_quality_count": len([rating for rating in ratings if rating >= 4.0]),
+        "top_threats": [
+            {
+                **item,
+                "detail": detail_map.get(item.get("id", ""), {}),
+            }
+            for item in top_threats[:8]
+        ],
         "top_threats_count": len(top_threats),
-
-        # 商圈覆盖
         "business_areas_covered": list(business_areas),
-
-        # 地图打点用（保留原字段，供 HTML 模板注入）
         "top_competitors_for_map": [
             {
-                "name": p["name"],
-                "location": p.get("location", ""),
+                "id": poi.get("id", ""),
+                "name": poi["name"],
+                "location": poi.get("location", ""),
                 "type": "competitor",
-                "distance_m": int(p.get("distance", 0)),
-                "rating": p.get("biz_ext", {}).get("rating", ""),
-                "avg_cost": p.get("biz_ext", {}).get("cost", ""),
-                "business_area": p.get("business_area", ""),
+                "distance_m": int(poi.get("distance", 0)) if str(poi.get("distance", "")).isdigit() else None,
+                "rating": poi.get("biz_ext", {}).get("rating", ""),
+                "avg_cost": poi.get("biz_ext", {}).get("cost", ""),
+                "business_area": poi.get("business_area", ""),
             }
-            for p in all_pois[:60]
+            for poi in all_pois[:60]
         ],
     }
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print(json.dumps({"error": "用法: python fetch_amap_poi.py <经度,纬度> <关键字> [半径]"}))
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("location_or_keyword")
+    parser.add_argument("keyword", nargs="?")
+    parser.add_argument("radius", nargs="?", type=int, default=2000)
+    parser.add_argument("--mode", choices=["around", "polygon", "text"], default="around")
+    parser.add_argument("--polygon")
+    parser.add_argument("--city")
+    parser.add_argument("--adcode")
+    args = parser.parse_args()
 
-    loc = sys.argv[1]
-    kw = sys.argv[2]
-    rad = int(sys.argv[3]) if len(sys.argv) > 3 else 2000
-
-    result_data = fetch_poi_data(loc, kw, rad)
-    print(json.dumps(result_data, ensure_ascii=False, indent=2))
+    if args.mode == "text":
+        result = fetch_poi_data(
+            keywords=args.location_or_keyword,
+            mode="text",
+            city=args.city,
+            adcode=args.adcode,
+        )
+    else:
+        result = fetch_poi_data(
+            location=args.location_or_keyword,
+            keywords=args.keyword,
+            radius=args.radius,
+            polygon=args.polygon,
+            city=args.city,
+            adcode=args.adcode,
+            mode=args.mode,
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))

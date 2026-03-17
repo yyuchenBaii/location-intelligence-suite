@@ -9,6 +9,7 @@ build_report.py
 finalize_skill.py
 update_skill.py
 scripts/temp_geocode.py
+!scripts/build_report.py
 
 # Ignore personal reports and mock data in resources
 resources/*.html

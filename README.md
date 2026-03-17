@@ -106,6 +106,33 @@
 
 Agent 会自动帮你绑定所有环境变量参数。
 
+### 稳定交付建议
+
+如果你希望最终 HTML 信息完整、结构固定、且不残留示例内容，推荐走下面这条链路：
+
+1. 先运行高德查询脚本，保存 JSON 结果
+2. 再运行 `python scripts/assemble_report_payload.py single spec.json payload.json`
+3. 或运行 `python scripts/assemble_report_payload.py compare spec.json payload.json`
+4. 最后运行 `python scripts/build_report.py single payload.json output.html`
+5. 或运行 `python scripts/build_report.py compare payload.json output.html`
+
+这样比让模型直接手改整份 HTML 更稳定，尤其适合多点对比和需要长期复用的 skill。
+
+补充说明：
+
+- `build_report.py` 默认会检查 `AMAP_JSAPI_KEY` 和 `AMAP_SEC_CODE`
+- 如果只是演示占位模板，可显式加 `--allow-missing-map-keys`
+
+### 新增的专业能力
+
+- `python scripts/resolve_location.py "地点描述" "城市"`：用高德输入提示 + 地理编码 + 关键字搜索做地点标准化，适合对话前置确认。
+- `python scripts/fetch_location_context.py "经度,纬度"`：补充行政区编码、AOI、最近商业锚点，以及步行/驾车/公交可达性。
+- `python scripts/fetch_amap_poi.py "经度,纬度" "业态关键词"`：点位周边竞品扫描。
+- `python scripts/fetch_amap_poi.py "业态关键词" --mode text --adcode 330110`：按行政区做片区级竞品搜索。
+- `python scripts/fetch_amap_poi.py "经度,纬度" "业态关键词" --mode polygon --polygon "lng1,lat1;lng2,lat2;..."`：按明确边界做专业扫描，适合商场、园区、街区。
+
+这些能力里，只有对选址结论有帮助的字段会进入最终报告；输入提示和候选列表只用于前置定位确认，不直接塞进报告。
+
 ---
 
 ## 🛡️ 数据安全与配置保护
@@ -120,5 +147,3 @@ Agent 会自动帮你绑定所有环境变量参数。
 这是基于真实开店血泪史凝结出的模型架构。如果你有更好的餐饮 / 零售计算公式，甚至是全新的破局场景，欢迎大方提交 Pull Request！
 
 **点亮右上角的 Star 🌟**
-
-

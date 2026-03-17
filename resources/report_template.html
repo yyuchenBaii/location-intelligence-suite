@@ -543,17 +543,17 @@
 <body>
 
     <header>
-        <div class="report-title">智能开店选址深度研报 <span class="tag">AI 高保真推演</span></div>
+        <div class="report-title"><span id="ui-header-title">智能开店选址深度研报</span> <span class="tag" id="ui-header-tag">AI 高保真推演</span></div>
         <div class="header-meta">
             <div title="数据核心来源基于高德地图开放平台 LBS 服务，客流画像由大模型测算生成" class="data-source">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                 </svg>
-                数据源声明: 高德 LBS 洞察 / AI 辅助建模
+                <span id="ui-data-source">数据源声明: 高德 LBS 洞察 / AI 辅助建模</span>
             </div>
-            <div class="meta-item">📍 定位: <span class="meta-val">上海·静安寺周边 1.5km</span></div>
-            <div class="meta-item">🎯 业态: <span class="meta-val">高阶社区精品咖啡店</span></div>
-            <div class="meta-item">⏱ 状态: <span style="color:var(--success)">推演完成 (10/10 维度)</span></div>
+            <div class="meta-item">📍 定位: <span class="meta-val" id="ui-location-label">上海·静安寺周边 1.5km</span></div>
+            <div class="meta-item">🎯 业态: <span class="meta-val" id="ui-business-type">高阶社区精品咖啡店</span></div>
+            <div class="meta-item">⏱ 状态: <span style="color:var(--success)" id="ui-status-text">推演完成 (10/10 维度)</span></div>
         </div>
     </header>
 
@@ -570,7 +570,7 @@
 
             <!-- Tab 1: 宏观分析与客流画像 -->
             <div id="tab-macro" class="tab-content active">
-                <div class="intent-box">
+                <div class="intent-box" id="ui-intent-box">
                     👤 <strong>商业意图建模：</strong> 试图在租金极其昂贵的静安核心区，依靠 <span class="hi">高净值白领通勤流</span> 支撑单店盈利，主打 <span
                         class="hi">快取+极简美学</span> 避开大店的空间内卷。
                 </div>
@@ -581,14 +581,14 @@
                 <div class="section-cap">② 客流动线与质量拆解</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <div class="m-label">日均绝对客流量</div>
-                        <div class="m-val">125,000+</div>
-                        <div class="m-sub">市级顶流商圈 (TOP 3%)</div>
+                        <div class="m-label" id="ui-traffic-label">日均绝对客流量</div>
+                        <div class="m-val" id="ui-traffic-value">125,000+</div>
+                        <div class="m-sub" id="ui-traffic-sub">市级顶流商圈 (TOP 3%)</div>
                     </div>
                     <div class="metric-card">
-                        <div class="m-label">咖啡业转化漏斗预估</div>
-                        <div class="m-val green">1.8%</div>
-                        <div class="m-sub">人群匹配度极高</div>
+                        <div class="m-label" id="ui-conversion-label">咖啡业转化漏斗预估</div>
+                        <div class="m-val green" id="ui-conversion-value">1.8%</div>
+                        <div class="m-sub" id="ui-conversion-sub">人群匹配度极高</div>
                     </div>
                 </div>
 
@@ -600,48 +600,31 @@
                 <div class="section-cap">③ 目标客群与潮汐推演</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <div class="m-label">周边 500m 写字楼/商务区</div>
-                        <div class="m-val">25 处</div>
+                        <div class="m-label" id="ui-flow-office-label">周边 500m 写字楼/商务区</div>
+                        <div class="m-val" id="ui-flow-office">25 处</div>
                         <div class="m-sub">工作日通勤流引擎</div>
                     </div>
                     <div class="metric-card">
-                        <div class="m-label">周边 500m 住宅/小区</div>
-                        <div class="m-val">4 处</div>
+                        <div class="m-label" id="ui-flow-resi-label">周边 500m 住宅/小区</div>
+                        <div class="m-val" id="ui-flow-resi">4 处</div>
                         <div class="m-sub">地缘性社区客底盘</div>
                     </div>
                 </div>
                 <div class="insight-block" style="margin-top: 15px;">
                     <div class="ib-title">消费潮汐推演结论</div>
-                    典型的【工作日潮汐】地段，早午市爆发，晚间及周末瞬间变‘死城’。只适合做早午餐/咖啡。
+                    <div id="ui-flow-conclusion">典型的【工作日潮汐】地段，早午市爆发，晚间及周末瞬间变‘死城’。只适合做早午餐/咖啡。</div>
                 </div>
             </div>
 
             <!-- Tab 2: 竞争排雷与黑天鹅风险 -->
             <div id="tab-compete" class="tab-content">
                 <div class="section-cap">④ 竞争环境扫描</div>
-                <div class="progress-row">
-                    <div class="p-header"><span>1km 内同品类绝对数量 (47家)</span> <span>深度红海预警 (95%)</span></div>
-                    <div class="p-track">
-                        <div class="p-fill bg-danger" style="width: 95%;"></div>
-                    </div>
-                </div>
-                <div class="progress-row">
-                    <div class="p-header"><span>核心展示面抢占率 (转角/主干道)</span> <span>极度饱和 (88%)</span></div>
-                    <div class="p-track">
-                        <div class="p-fill bg-danger" style="width: 88%;"></div>
-                    </div>
-                </div>
-                <div class="progress-row">
-                    <div class="p-header"><span>30-40元 价格带存量市场模型</span> <span>存续缝隙机会 (30%)</span></div>
-                    <div class="p-track">
-                        <div class="p-fill bg-safe" style="width: 30%;"></div>
-                    </div>
-                </div>
+                <div id="ui-competition-progress"></div>
 
                 <div class="section-cap">⑤ 微观落位避险建议</div>
                 <div class="tip-box">
                     <div class="tip-icon">💡</div>
-                    <div class="tip-content">
+                    <div class="tip-content" id="ui-competition-warning">
                         <strong>物理屏障勘误：常德路西侧区段避险</strong><br>
                         该路段受下午强日照影响大，且行道树严重遮挡外立面展示。人行道狭窄且交警严格贴单，限制了外卖骑手的驻留取单效率。若在此选址，线上履约成本与拒单率将大幅攀升。
                     </div>
@@ -650,7 +633,7 @@
                 <div class="section-cap">⑥ 潜在环境变量风险</div>
                 <div class="insight-block risk">
                     <div class="ib-title">城市更新工程导致的阶段性客流阻断</div>
-                    调研反馈：延安中路北侧部分建筑群即将进入长达 8 个月的外立面改造周期。施工围挡将导致自然过客流量阻断近 70%。若选址落位该工程辐射区，需准备至少一年的长线抗风险资金准备。
+                    <div id="ui-competition-risk">调研反馈：延安中路北侧部分建筑群即将进入长达 8 个月的外立面改造周期。施工围挡将导致自然过客流量阻断近 70%。若选址落位该工程辐射区，需准备至少一年的长线抗风险资金准备。</div>
                 </div>
             </div>
 
@@ -659,26 +642,26 @@
                 <div class="section-cap">⑦ 财务预测与收支模型</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <div class="m-label">周边首排临街铺 均价</div>
-                        <div class="m-val red">35 - 50</div>
-                        <div class="m-sub">元/平米/天</div>
+                        <div class="m-label" id="ui-rent-label">周边首排临街铺 均价</div>
+                        <div class="m-val red" id="ui-rent-value">35 - 50</div>
+                        <div class="m-sub" id="ui-rent-sub">元/平米/天</div>
                     </div>
                     <div class="metric-card">
-                        <div class="m-label">保本点 (按单杯￥35)</div>
-                        <div class="m-val">120+ 杯</div>
-                        <div class="m-sub">每日纯堂食转化阈值</div>
+                        <div class="m-label" id="ui-breakeven-label">保本点 (按单杯￥35)</div>
+                        <div class="m-val" id="ui-breakeven-value">120+ 杯</div>
+                        <div class="m-sub" id="ui-breakeven-sub">每日纯堂食转化阈值</div>
                     </div>
                 </div>
 
                 <div class="section-cap">⑧ ROI 与回本周期评估</div>
                 <div class="insight-block money">
                     <div class="ib-title">租售比警戒线管控</div>
-                    在高客单价表象下，租金成本侵蚀现象严重。按基准 30 ㎡ 临街面每月 5 万元测算，<strong>租售比极易突破 25% 的高危警戒线</strong>。需具备日销 250
-                    杯以上的运营能力，否则毛利不足以覆盖综合开支。
+                    <div id="ui-roi-insight">在高客单价表象下，租金成本侵蚀现象严重。按基准 30 ㎡ 临街面每月 5 万元测算，<strong>租售比极易突破 25% 的高危警戒线</strong>。需具备日销 250
+                    杯以上的运营能力，否则毛利不足以覆盖综合开支。</div>
                 </div>
                 <div class="insight-block money">
                     <div class="ib-title">营业天花板估值</div>
-                    参考区域内存量优良范本（前 20% 分位数据）：月平效约合营收 20-25 万元区间。但在扣除非核心商用成本及高昂物业管理费后，静利水平普遍在 15% 临界点。
+                    <div id="ui-revenue-insight">参考区域内存量优良范本（前 20% 分位数据）：月平效约合营收 20-25 万元区间。但在扣除非核心商用成本及高昂物业管理费后，静利水平普遍在 15% 临界点。</div>
                 </div>
             </div>
 
@@ -687,12 +670,12 @@
                 <div class="section-cap">⑨ 工程红线与合规排雷</div>
                 <div class="insight-block risk">
                     <div class="ib-title">硬性工程条件核查</div>
-                    大模型根据业态动态生成。例如重餐饮必须核查独立排烟管道、380V三相电及隔油池。确保大模型填入符合业态的强相关内容。
+                    <div id="ui-compliance-insight">大模型根据业态动态生成。例如重餐饮必须核查独立排烟管道、380V三相电及隔油池。确保大模型填入符合业态的强相关内容。</div>
                 </div>
                 <div class="section-cap">⑩ 房东谈判底牌清单</div>
                 <div class="tip-box">
                     <div class="tip-icon">🛡️</div>
-                    <div class="tip-content">
+                    <div class="tip-content" id="ui-negotiation-insight">
                         <strong>合同谈判核心筹码：</strong><br>
                         大模型动态生成。例如要求 1-2 个月的消防审批免租期，或者警惕转让费陷阱。要求大模型化身老法师给出最毒辣的谈判建议。
                     </div>
@@ -703,7 +686,7 @@
             <div class="sidebar-conclusion" id="ui-global-conclusion-container">
                 <div class="sc-title">📊 最终横向对比与投资建议</div>
                 <div class="sc-content" id="ui-global-conclusion-content">
-                    正在生成核心决策...
+                    建议将最终结论写入此处，保证交付报告时的关键信息集中可见。
                 </div>
             </div>
         </aside>
@@ -712,10 +695,10 @@
         <div class="final-decision-flyout">
             <div class="flyout-header">投资决策建议指令</div>
             <div class="score-row">
-                <div class="big-score">62</div>
-                <div class="grade-badge">C- 谨慎回避</div>
+                <div class="big-score" id="ui-score">62</div>
+                <div class="grade-badge" id="ui-grade">C- 谨慎回避</div>
             </div>
-            <div class="kill-reason">
+            <div class="kill-reason" id="ui-decision-reason">
                 <strong>[非入场理由阐述]：</strong>
                 选址具备城市级头部流量潜力，但<strong>极高的隐形成本门槛对资金周转率要求苛刻</strong>。区域市场已处完全竞争状态，头部连锁的规模效应将大幅削弱独立品牌溢价。缺乏成熟抗风险闭环经验不建议贸然进场测试。
             </div>
@@ -749,17 +732,94 @@
         // ----------------------------------------
         // 2. G2Plot 雷达图渲染加载
         // ----------------------------------------
-        const radarData = [
-            { item: '客流底盘', score: 95 },
-            { item: '消费力', score: 85 },
-            { item: '交通可达性', score: 90 },
-            { item: '经营成本 (越低分表示成本越差)', score: 30 },
-            { item: '竞争蓝海度', score: 20 },
-            { item: '品牌曝光价值', score: 98 }
-        ];
+        const reportData = {
+            header: {
+                title: '智能开店选址深度研报',
+                tag: 'AI 高保真推演',
+                dataSourceText: '数据源声明: 高德 LBS 洞察 / AI 辅助建模',
+                locationLabel: '上海·静安寺周边 1.5km',
+                businessType: '高阶社区精品咖啡店',
+                statusText: '推演完成 (10/10 维度)'
+            },
+            intentHtml: '👤 <strong>商业意图建模：</strong> 试图在租金极其昂贵的静安核心区，依靠 <span class="hi">高净值白领通勤流</span> 支撑单店盈利，主打 <span class="hi">快取+极简美学</span> 避开大店的空间内卷。',
+            radar: [
+                { item: '客流底盘', score: 95 },
+                { item: '消费力', score: 85 },
+                { item: '交通可达性', score: 90 },
+                { item: '经营成本 (越低分表示成本越差)', score: 30 },
+                { item: '竞争蓝海度', score: 20 },
+                { item: '品牌曝光价值', score: 98 }
+            ],
+            metrics: {
+                trafficLabel: '日均绝对客流量',
+                trafficValue: '125,000+',
+                trafficSub: '市级顶流商圈 (TOP 3%)',
+                conversionLabel: '咖啡业转化漏斗预估',
+                conversionValue: '1.8%',
+                conversionSub: '人群匹配度极高'
+            },
+            flow: {
+                officeLabel: '周边 500m 写字楼/商务区',
+                officeCount: '25 处',
+                residentialLabel: '周边 500m 住宅/小区',
+                residentialCount: '4 处'
+            },
+            competition: {
+                progress: [
+                    { label: '1km 内同品类绝对数量 (47家)', valueText: '深度红海预警 (95%)', pct: 95, colorClass: 'bg-danger' },
+                    { label: '核心展示面抢占率 (转角/主干道)', valueText: '极度饱和 (88%)', pct: 88, colorClass: 'bg-danger' },
+                    { label: '30-40元 价格带存量市场模型', valueText: '存续缝隙机会 (30%)', pct: 30, colorClass: 'bg-safe' }
+                ]
+            },
+            finance: {
+                rentLabel: '周边首排临街铺 均价',
+                rentValue: '35 - 50',
+                rentSub: '元/平米/天',
+                breakevenLabel: '保本点 (按单杯￥35)',
+                breakevenValue: '120+ 杯',
+                breakevenSub: '每日纯堂食转化阈值'
+            },
+            insights: {
+                trafficAnalysisHtml: '典型超核心商务区，工作日白领通勤和午间外带需求强，适合高频快取型产品。',
+                flowConclusionHtml: '典型的【工作日潮汐】地段，早午市爆发，晚间及周末瞬间变“死城”。只适合做早午餐/咖啡。',
+                competitionWarningHtml: '<strong>物理屏障勘误：常德路西侧区段避险</strong><br>该路段受下午强日照影响大，且行道树严重遮挡外立面展示。人行道狭窄且交警严格贴单，限制了外卖骑手的驻留取单效率。若在此选址，线上履约成本与拒单率将大幅攀升。',
+                competitionRiskHtml: '调研反馈：延安中路北侧部分建筑群即将进入长达 8 个月的外立面改造周期。施工围挡将导致自然过客流量阻断近 70%。若选址落位该工程辐射区，需准备至少一年的长线抗风险资金准备。',
+                roiHtml: '在高客单价表象下，租金成本侵蚀现象严重。按基准 30 ㎡ 临街面每月 5 万元测算，<strong>租售比极易突破 25% 的高危警戒线</strong>。需具备日销 250 杯以上的运营能力，否则毛利不足以覆盖综合开支。',
+                revenueHtml: '参考区域内存量优良范本（前 20% 分位数据）：月平效约合营收 20-25 万元区间。但在扣除非核心商用成本及高昂物业管理费后，静利水平普遍在 15% 临界点。',
+                complianceHtml: '重餐饮必须核查独立排烟管道、380V 三相电及隔油池，轻餐饮则优先确认消防喷淋和上下水能力是否满足营业执照要求。',
+                negotiationHtml: '<strong>合同谈判核心筹码：</strong><br>要求 1-2 个月的消防审批免租期，并明确限制高额转让费与模糊物业增收条款。',
+                globalConclusionHtml: '建议将最终结论写入此处，保证交付报告时的关键信息集中可见。',
+                decisionReasonHtml: '<strong>[非入场理由阐述]：</strong>选址具备城市级头部流量潜力，但<strong>极高的隐形成本门槛对资金周转率要求苛刻</strong>。区域市场已处完全竞争状态，头部连锁的规模效应将大幅削弱独立品牌溢价。缺乏成熟抗风险闭环经验不建议贸然进场测试。'
+            },
+            decision: {
+                score: '62',
+                grade: 'C- 谨慎回避',
+                gradeClass: 'danger'
+            },
+            map: {
+                targetPoint: [121.4485, 31.2268],
+                targetTitle: '拟选店址: 静安寺核心区',
+                targetDescriptionHtml: '预计铺位面积: 30-50㎡<br>平均日租金估值: 45元/㎡/天',
+                circles: [
+                    { radius: 600, title: '高危竞争饱和圈', desc: '圈内监测到 47 家存续经营的同类业态品牌门店。', color: '#ff1744', fillOpacity: 0.1 }
+                ],
+                pois: [
+                    { loc: [121.450, 31.225], name: '越洋广场', type: 'office', desc: '核心优质白领高频通勤集散锚点。' },
+                    { loc: [121.445, 31.229], name: '会德丰国际广场', type: 'office', desc: '核心优质白领高频通勤集散锚点。' },
+                    { loc: [121.453, 31.227], name: '嘉里中心办公楼', type: 'office', desc: '核心优质白领高频通勤集散锚点。' },
+                    { loc: [121.449, 31.221], name: '上海展览中心片区', type: 'office', desc: '核心优质白领高频通勤集散锚点。' }
+                ],
+                heatData: [],
+                legendItems: [
+                    { color: 'var(--accent-cyan)', label: '目标选址点' },
+                    { color: 'var(--success)', label: '办公楼/客流锚点' },
+                    { color: 'var(--danger)', label: '竞品或风险打点' }
+                ]
+            }
+        };
 
         const radarPlot = new G2Plot.Radar('radar-chart', {
-            data: radarData,
+            data: reportData.radar,
             xField: 'item',
             yField: 'score',
             meta: { score: { alias: '维度评分', min: 0, max: 100 } },
@@ -843,7 +903,80 @@
         // ----------------------------------------
         // 4. 大模型数据预填区与初始化
         // ----------------------------------------
-        const targetPoint = [121.4485, 31.2268]; // 静安寺
+        function setLegendItems(items) {
+            const legend = document.getElementById('map-legend');
+            const titleNode = legend.querySelector('.map-legend-title');
+            legend.innerHTML = '';
+            legend.appendChild(titleNode);
+            items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'legend-item';
+                row.innerHTML = `<span class="legend-dot" style="background:${item.color}"></span><span>${item.label}</span>`;
+                legend.appendChild(row);
+            });
+        }
+
+        function renderCompetitionProgress(rows) {
+            const container = document.getElementById('ui-competition-progress');
+            container.innerHTML = '';
+            rows.forEach(row => {
+                const block = document.createElement('div');
+                block.className = 'progress-row';
+                block.innerHTML = `
+                    <div class="p-header"><span>${row.label}</span> <span>${row.valueText}</span></div>
+                    <div class="p-track">
+                        <div class="p-fill ${row.colorClass}" style="width: ${row.pct}%;"></div>
+                    </div>
+                `;
+                container.appendChild(block);
+            });
+        }
+
+        function renderReport(data) {
+            document.getElementById('ui-header-title').innerText = data.header.title;
+            document.getElementById('ui-header-tag').innerText = data.header.tag;
+            document.getElementById('ui-data-source').innerText = data.header.dataSourceText;
+            document.getElementById('ui-location-label').innerText = data.header.locationLabel;
+            document.getElementById('ui-business-type').innerText = data.header.businessType;
+            document.getElementById('ui-status-text').innerText = data.header.statusText;
+            document.getElementById('ui-intent-box').innerHTML = data.intentHtml;
+            document.getElementById('ui-traffic-label').innerText = data.metrics.trafficLabel || '日均绝对客流量';
+            document.getElementById('ui-traffic-value').innerHTML = data.metrics.trafficValue;
+            document.getElementById('ui-traffic-sub').innerHTML = data.metrics.trafficSub;
+            document.getElementById('ui-conversion-label').innerText = data.metrics.conversionLabel || '咖啡业转化漏斗预估';
+            document.getElementById('ui-conversion-value').innerHTML = data.metrics.conversionValue;
+            document.getElementById('ui-conversion-sub').innerHTML = data.metrics.conversionSub;
+            document.getElementById('ui-insight1').innerHTML = data.insights.trafficAnalysisHtml;
+            document.getElementById('ui-flow-office-label').innerText = data.flow.officeLabel || '周边 500m 写字楼/商务区';
+            document.getElementById('ui-flow-office').innerHTML = data.flow.officeCount;
+            document.getElementById('ui-flow-resi-label').innerText = data.flow.residentialLabel || '周边 500m 住宅/小区';
+            document.getElementById('ui-flow-resi').innerHTML = data.flow.residentialCount;
+            document.getElementById('ui-flow-conclusion').innerHTML = data.insights.flowConclusionHtml;
+            document.getElementById('ui-competition-warning').innerHTML = data.insights.competitionWarningHtml;
+            document.getElementById('ui-competition-risk').innerHTML = data.insights.competitionRiskHtml;
+            document.getElementById('ui-rent-label').innerText = data.finance.rentLabel || '周边首排临街铺 均价';
+            document.getElementById('ui-rent-value').innerHTML = data.finance.rentValue;
+            document.getElementById('ui-rent-sub').innerHTML = data.finance.rentSub;
+            document.getElementById('ui-breakeven-label').innerText = data.finance.breakevenLabel || '保本点 (按单杯￥35)';
+            document.getElementById('ui-breakeven-value').innerHTML = data.finance.breakevenValue;
+            document.getElementById('ui-breakeven-sub').innerHTML = data.finance.breakevenSub;
+            document.getElementById('ui-roi-insight').innerHTML = data.insights.roiHtml;
+            document.getElementById('ui-revenue-insight').innerHTML = data.insights.revenueHtml;
+            document.getElementById('ui-compliance-insight').innerHTML = data.insights.complianceHtml;
+            document.getElementById('ui-negotiation-insight').innerHTML = data.insights.negotiationHtml;
+            document.getElementById('ui-global-conclusion-content').innerHTML = data.insights.globalConclusionHtml;
+            document.getElementById('ui-global-conclusion-container').style.display = 'block';
+            document.getElementById('ui-score').innerText = data.decision.score;
+            document.getElementById('ui-grade').className = `grade-badge ${data.decision.gradeClass || ''}`.trim();
+            document.getElementById('ui-grade').innerText = data.decision.grade;
+            document.getElementById('ui-decision-reason').innerHTML = data.insights.decisionReasonHtml;
+
+            renderCompetitionProgress(data.competition.progress || []);
+            radarPlot.changeData(data.radar);
+            setLegendItems(data.map.legendItems || []);
+        }
+
+        const targetPoint = reportData.map.targetPoint;
 
         window.map = new AMap.Map('amap-container', {
             zoom: 15.5,
@@ -861,30 +994,19 @@
                 content: `<div style="width: 25px; height: 25px; border: 3px solid var(--accent-cyan); border-radius: 50%; box-shadow: 0 0 20px var(--accent-cyan); background: rgba(102, 252, 241, 0.4); display: flex; align-items: center; justify-content: center; cursor: pointer;"><div style="width: 5px; height: 5px; background: white; border-radius: 50%;"></div></div>`,
                 anchor: 'center',
                 zIndex: 100,
-                extData: { title: "拟选店址: 静安寺核心区", desc: "预计铺位面积: 30-50㎡<br>平均日租金估值: 45元/㎡/天" }
+                extData: { title: reportData.map.targetTitle, desc: reportData.map.targetDescriptionHtml }
             });
             window.map.add(targetMarker);
             targetMarker.on('click', function (e) { showInfoWin(window.map, e.target.getExtData(), e.target.getPosition()); });
 
-            // 2. 调用引擎渲染同心圈
-            const circles = [
-                { radius: 600, title: "高危竞争饱和圈", desc: "圈内监测到 47 家存续经营的同类业态品牌门店。", color: "#ff1744", fillOpacity: 0.1 }
-            ];
-            renderConcentricCircles(window.map, targetPoint, circles);
+            renderConcentricCircles(window.map, targetPoint, reportData.map.circles || []);
 
-            // 3. 调用引擎渲染 POI
-            const pois = [
-                { loc: [121.450, 31.225], name: "越洋广场", type: "office", desc: "核心优质白领高频通勤集散锚点。" },
-                { loc: [121.445, 31.229], name: "会德丰国际广场", type: "office", desc: "核心优质白领高频通勤集散锚点。" },
-                { loc: [121.453, 31.227], name: "嘉里中心办公楼", type: "office", desc: "核心优质白领高频通勤集散锚点。" },
-                { loc: [121.449, 31.221], name: "上海展览中心片区", type: "office", desc: "核心优质白领高频通勤集散锚点。" }
-            ];
-            renderPOIs(window.map, pois);
+            renderPOIs(window.map, reportData.map.pois || []);
 
-            // 4. (示例) 渲染热力图 - AI可注入密集坐标如: {lng:121.45, lat:31.22, count:10}
-            const heatData = [];
-            renderHeatMap(window.map, heatData);
+            renderHeatMap(window.map, reportData.map.heatData || []);
         });
+
+        renderReport(reportData);
     </script>
 </body>
 

@@ -6,8 +6,13 @@ Use the local scripts as the source of truth when real-data mode is enabled.
 
 Run these in order:
 
-1. `python scripts/fetch_location_context.py "<lng,lat>"`
-2. `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>"`
+1. optional resolve step:
+   `python scripts/resolve_location.py "<query>" "<city>"`
+2. `python scripts/fetch_location_context.py "<lng,lat>"`
+3. one of:
+   - `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>"`
+   - `python scripts/fetch_amap_poi.py "<business_keyword>" --mode text --adcode <adcode>`
+   - `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>" --mode polygon --polygon "<polyline>"`
 
 ## `fetch_location_context.py`
 
@@ -23,14 +28,21 @@ Primary fields:
 - `metro_flow_label`
 - `office_count`
 - `residential_count`
+- `adcode`
+- `aoi_name`
+- `nearest_commercial_anchor`
+- `anchor_access`
+- `metro_access`
 
 Typical use:
 
 - administrative and business-area naming
 - landmark description
 - metro accessibility
+- multi-mode accessibility
 - commuter-capture judgment
 - office vs residential mix for tide-pattern inference
+- nearby commercial-anchor judgment
 
 ## `fetch_amap_poi.py`
 
@@ -47,6 +59,9 @@ Primary fields:
 - `top_threats_count`
 - `business_areas_covered`
 - `top_competitors_for_map`
+- `search_mode`
+- `closest_competitor.detail`
+- `top_threats[].detail`
 
 Typical use:
 
@@ -55,6 +70,8 @@ Typical use:
 - summarize the price band structure
 - identify high-threat competitors inside 500m
 - inject full competitor map data into the report
+- distinguish point scan vs boundary scan vs district scan
+- use POI detail data to avoid shallow competitor descriptions
 
 ## What Can Be Stated As Fact
 

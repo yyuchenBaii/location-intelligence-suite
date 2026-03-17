@@ -11,6 +11,8 @@ Before generating HTML, read the relevant local file:
 
 If the template cannot be read, warn the user clearly that the report is a degraded fallback version.
 
+Prefer replacing the dedicated payload constant through `scripts/build_report.py` instead of asking the model to hand-edit many scattered HTML fragments.
+
 ## Single-Location Template
 
 For single-location reports:
@@ -19,6 +21,7 @@ For single-location reports:
 - fill the intended containers instead of redesigning the page
 - avoid adding floating summary panels over the map
 - keep the existing dark-blue UI theme and white AMap base style
+- replace the `const reportData = { ... };` payload rather than patching dozens of literals
 
 The final conclusion belongs in the reserved conclusion container, not as a separate map overlay.
 
@@ -29,7 +32,7 @@ For multi-location comparison reports, the template is driven by JavaScript data
 Strict rule:
 
 - do not manually rewrite the static HTML sections as the primary injection path
-- replace the `const locationData = { ... };` object with the generated per-location data
+- replace the `const comparisonData = { ... };` object with the generated per-location data
 
 If this rule is ignored, the content may disappear when the user switches locations in the UI.
 

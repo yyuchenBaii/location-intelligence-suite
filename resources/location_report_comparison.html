@@ -506,15 +506,15 @@
 
     <header>
         <div class="report-title">
-            多商圈深度对比研报
-            <span class="tag">AI 高保真推演</span>
-            <div style="font-size: 12px; color: var(--text-secondary); font-weight: normal;">| 80万预算·空间溢价咖啡</div>
+            <span id="ui-header-title">多商圈深度对比研报</span>
+            <span class="tag" id="ui-header-tag">AI 高保真推演</span>
+            <div style="font-size: 12px; color: var(--text-secondary); font-weight: normal;" id="ui-header-subtitle">| 80万预算·空间溢价咖啡</div>
         </div>
         <div style="display: flex; align-items: center;">
             <div class="location-switcher" id="loc-switcher">
                 <!-- Location buttons injected by JS -->
             </div>
-            <div title="数据核心来源基于高德地图开放平台 LBS 服务，客流画像由大模型测算生成" class="data-source">
+            <div title="数据核心来源基于高德地图开放平台 LBS 服务，客流画像由大模型测算生成" class="data-source" id="ui-data-source">
                 数据源声明: 高德 LBS 洞察
             </div>
         </div>
@@ -537,12 +537,12 @@
                 <div class="section-cap">客群质量结构</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <div class="m-label">日均客流触达</div>
+                        <div class="m-label" id="ui-metric1-label">日均客流触达</div>
                         <div class="m-val" id="ui-metric1-val"></div>
                         <div class="m-sub" id="ui-metric1-sub"></div>
                     </div>
                     <div class="metric-card">
-                        <div class="m-label">溢价转化率</div>
+                        <div class="m-label" id="ui-metric2-label">溢价转化率</div>
                         <div class="m-val" id="ui-metric2-val"></div>
                         <div class="m-sub" id="ui-metric2-sub"></div>
                     </div>
@@ -587,12 +587,12 @@
                 <div class="section-cap">财务预测模型 (80万总包)</div>
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <div class="m-label">预测保底租金</div>
+                        <div class="m-label" id="ui-finance1-label">预测保底租金</div>
                         <div class="m-val" id="ui-finance1"></div>
                         <div class="m-sub">万元/月</div>
                     </div>
                     <div class="metric-card">
-                        <div class="m-label">死亡平衡点</div>
+                        <div class="m-label" id="ui-finance2-label">死亡平衡点</div>
                         <div class="m-val" id="ui-finance2"></div>
                         <div class="m-sub">日销杯数</div>
                     </div>
@@ -655,7 +655,15 @@
         // ----------------------------------------
         // Data Payloads for Multi-Location
         // ----------------------------------------
-        const locationData = {
+        const comparisonData = {
+            header: {
+                title: '多商圈深度对比研报',
+                tag: 'AI 高保真推演',
+                subtitle: '| 80万预算·空间溢价咖啡',
+                dataSourceText: '数据源声明: 高德 LBS 洞察'
+            },
+            globalConclusionHtml: '<strong>横向对比综合建议：</strong><br>在此输入各点位优劣势总结与最终投资建议排序...',
+            locations: {
             'A': {
                 id: 'A', name: '仓前板块 (EFC周边)', recommend: false, latlng: [119.996, 30.281],
                 score: 42, grade: 'C- 谨慎入场', gradeClass: 'danger', color: 'var(--danger)',
@@ -665,7 +673,9 @@
                     { item: '竞争蓝海度', score: 10 }, { item: '出片传播潜能', score: 40 }
                 ],
                 intent: '核心 <strong>IT 互联网心脏地带</strong>，午休刚需极高，但对空间溢价极度不敏锐。',
+                metric1Label: '日均客流触达',
                 metric1: '55,000+', m1sub: '海量换乘与通勤人潮',
+                metric2Label: '溢价转化率',
                 metric2: '<span style="color:var(--danger)">1.2%</span>', m2sub: '拿着就走，毫无驻留时间',
                 insight1: '人群画像极度硬核，白领核心诉求是“续命提取液”而非“环境享受”。花80万在这里做硬装，相当于锦衣夜行。',
                 progress: [
@@ -673,11 +683,19 @@
                     { label: '中高档独立品牌存活', pct: 15, color: 'bg-warn' }
                 ],
                 insight2: '<strong>死亡红海警戒</strong>：周边的瑞幸与街区下沉品牌已填满每一个写字大堂底商。高昂商发转让费极易抽干现金流。',
-                finance1: '<span style="color:var(--danger)">4.0 - 6.5</span>', finance2: '<span style="color:var(--danger)">220+</span>',
+                finance1Label: '预测保底租金',
+                finance1: '<span style="color:var(--danger)">4.0 - 6.5</span>',
+                finance2Label: '死亡平衡点',
+                finance2: '<span style="color:var(--danger)">220+</span>',
                 insight3: '租约成本将彻底击穿 80 万总包的防线，如果勉强拿下背街巷尾的烂铺，则必无日漫量。属于绝对的高危资产。',
                 flowOffice: '45 处', flowResi: '3 处', flowInsight: '极其极致的写字楼单边潮汐，周末几无客流存在。',
                 compInsight: '楼宇物业费奇高，且禁止外摆、禁止明火。', compNeg: '商发垄断地段，需额外准备至少15万茶水费/转让费。',
-                reason: '<span class="highlight">[非入场理由阐述]：</span>租金杀手+红海绞肉机。80万不够交半年房租和天价转让费。这里的赛道只属于资本连锁玩家。'
+                reason: '<span class="highlight">[非入场理由阐述]：</span>租金杀手+红海绞肉机。80万不够交半年房租和天价转让费。这里的赛道只属于资本连锁玩家。',
+                legendItems: [
+                    { color: 'var(--danger)', label: '竞品 / 风险点位' },
+                    { color: 'var(--success)', label: '办公楼 / 客流锚点' },
+                    { color: 'var(--accent-cyan)', label: '目标候选点' }
+                ]
             },
             'B': {
                 id: 'B', name: '亲橙里 (阿里西溪内核)', recommend: false, latlng: [120.024, 30.266],
@@ -688,7 +706,9 @@
                     { item: '竞争蓝海度', score: 25 }, { item: '出片传播潜能', score: 60 }
                 ],
                 intent: '阿里生态重度辐射区，<strong>商谈属性爆表</strong>，客群支付能力全杭州顶流。',
+                metric1Label: '日均客流触达',
                 metric1: '38,000+', m1sub: '以阿里大军/供应商为主',
+                metric2Label: '溢价转化率',
                 metric2: '<span style="color:var(--warning)">2.8%</span>', m2sub: '商业洽谈转化尚可',
                 insight1: '虽然客人有钱且需要谈事，但大厂内部自带极其廉价完善的咖啡供给，外部铺位若无降维级产品力极难破局。',
                 progress: [
@@ -696,11 +716,19 @@
                     { label: '缝隙蓝海机会', pct: 35, color: 'bg-warn' }
                 ],
                 insight2: '<strong>截留效应剧烈</strong>：亲橙里内部铺位极其稀缺且租金惊人，外围底商面临商场巨头的全方位流量抽干。',
-                finance1: '<span style="color:var(--warning)">3.5 - 4.5</span>', finance2: '<span style="color:var(--warning)">160+</span>',
+                finance1Label: '预测保底租金',
+                finance1: '<span style="color:var(--warning)">3.5 - 4.5</span>',
+                finance2Label: '死亡平衡点',
+                finance2: '<span style="color:var(--warning)">160+</span>',
                 insight3: '由于极度依赖工作日商用流量，周末面临周边土著的流失。盈亏平衡点偏高，抗风险能力差。',
                 flowOffice: '21 处', flowResi: '12 处', flowInsight: '工作日阿里大军主导，周末有微弱的地缘客流补充，但总体依然呈大落差。',
                 compInsight: '园区门禁严格，外卖需设置专门交接点，影响履约效率。', compNeg: '有很强的排他商户协议存在，需核查该铺位是否允许做现磨咖啡。',
-                reason: '<span class="highlight">[非入场理由阐述]：</span>大厂的羊毛不好薅！内部极高配的饮食设施已干掉了一大批周边餐饮，租金泡沫极大。'
+                reason: '<span class="highlight">[非入场理由阐述]：</span>大厂的羊毛不好薅！内部极高配的饮食设施已干掉了一大批周边餐饮，租金泡沫极大。',
+                legendItems: [
+                    { color: 'var(--danger)', label: '竞品 / 风险点位' },
+                    { color: 'var(--success)', label: '办公楼 / 客流锚点' },
+                    { color: 'var(--accent-cyan)', label: '目标候选点' }
+                ]
             },
             'C': {
                 id: 'C', name: '良渚文化村', recommend: true, latlng: [119.967, 30.380],
@@ -711,7 +739,9 @@
                     { item: '竞争蓝海度', score: 70 }, { item: '出片传播潜能', score: 90 }
                 ],
                 intent: '80万总包预算下，强寻具备消费宽容度的<strong>中高端客群与微度假锚点</strong>。',
+                metric1Label: '日均客流触达',
                 metric1: '22,000+', m1sub: '区域微循环与周末爆发客流',
+                metric2Label: '溢价转化率',
                 metric2: '<span style="color:var(--success)">3.8%</span>', m2sub: '高情绪价值买单意愿',
                 insight1: '呈现平滑的高黏性社区生态与周末爆发式的艺文客流。这里的受众不仅具备承载单杯 35+ 的财务实力，且愿意为出片率支付空间溢价。',
                 progress: [
@@ -719,15 +749,24 @@
                     { label: '独立主理人蓝海缺口', pct: 75, color: 'bg-safe' }
                 ],
                 insight2: '<strong>回避内侧死角商展</strong>：部分村民广场外围非市政底商虽便宜，但非动线必经地，切勿为了省那几千块误入“实体百慕大”。',
-                finance1: '<span style="color:var(--success)">1.8 - 2.5</span>', finance2: '<span style="color:var(--success)">80+</span>',
+                finance1Label: '预测保底租金',
+                finance1: '<span style="color:var(--success)">1.8 - 2.5</span>',
+                finance2Label: '死亡平衡点',
+                finance2: '<span style="color:var(--success)">80+</span>',
                 insight3: '租约成本被成功压制在了极度健康的15% 乃至更低。80万全砸在调性与设备上，半年回血不是梦。',
                 flowOffice: '2 处', flowResi: '38 处', flowInsight: '极致的地缘性平滑客流与大量周末微度假增量重叠，全天候均有出杯。',
                 compInsight: '涉及部分村内历史保护建筑或统一外观风貌管理，门头可能受限。', compNeg: '要求 2-3 个月的装修免租期十分合理，且可约定免收进场费。',
-                reason: '<span class="highlight">[核心破局理由阐述]：</span>极其正确的战略转移。用 80 万在此形成“降维打击”——换取极低的租售比与高溢价池！'
+                reason: '<span class="highlight">[核心破局理由阐述]：</span>极其正确的战略转移。用 80 万在此形成“降维打击”——换取极低的租售比与高溢价池！',
+                legendItems: [
+                    { color: 'var(--danger)', label: '竞品 / 风险点位' },
+                    { color: 'var(--success)', label: '办公楼 / 客流锚点' },
+                    { color: 'var(--accent-cyan)', label: '目标候选点' }
+                ]
             }
-        };
+        }};
 
-        let currentLoc = 'C';
+        const locationData = comparisonData.locations;
+        let currentLoc = Object.keys(locationData).find(key => locationData[key].recommend) || Object.keys(locationData)[0];
         let map, radarPlot, markers = [];
         let globalHeatmapLayer = null;
 
@@ -792,19 +831,36 @@
             });
         }
 
+        function setLegendItems(items) {
+            const legend = document.getElementById('map-legend');
+            const titleNode = legend.querySelector('.map-legend-title');
+            legend.innerHTML = '';
+            legend.appendChild(titleNode);
+            items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'legend-item';
+                row.innerHTML = `<span class="legend-dot" style="background:${item.color}"></span><span>${item.label}</span>`;
+                legend.appendChild(row);
+            });
+        }
+
         // ----------------------------------------
         // Init Map & Chart
         // ----------------------------------------
         function initMap() {
+            document.getElementById('ui-header-title').innerText = comparisonData.header.title;
+            document.getElementById('ui-header-tag').innerText = comparisonData.header.tag;
+            document.getElementById('ui-header-subtitle').innerText = comparisonData.header.subtitle;
+            document.getElementById('ui-data-source').innerText = comparisonData.header.dataSourceText;
             map = new AMap.Map('amap-container', {
-                zoom: 15, center: locationData['C'].latlng, mapStyle: 'amap://styles/normal', viewMode: '3D', pitch: 45
+                zoom: 15, center: locationData[currentLoc].latlng, mapStyle: 'amap://styles/normal', viewMode: '3D', pitch: 45
             });
 
             radarPlot = new G2Plot.Radar('radar-chart', {
-                data: locationData['C'].radar, xField: 'item', yField: 'score', meta: { score: { min: 0, max: 100 } },
+                data: locationData[currentLoc].radar, xField: 'item', yField: 'score', meta: { score: { min: 0, max: 100 } },
                 autoFit: true, theme: 'dark',
-                area: { style: { fill: locationData['C'].color, fillOpacity: 0.15 } },
-                line: { style: { stroke: locationData['C'].color, lineWidth: 2 } },
+                area: { style: { fill: locationData[currentLoc].color, fillOpacity: 0.15 } },
+                line: { style: { stroke: locationData[currentLoc].color, lineWidth: 2 } },
                 point: { size: 3, shape: 'circle' },
                 xAxis: { line: null, tickLine: null, label: { style: { fill: '#8b9ac1', fontSize: 11 } } },
                 yAxis: { grid: { line: { type: 'circle', style: { stroke: 'rgba(255,255,255,0.08)' } } } },
@@ -812,10 +868,10 @@
             });
             radarPlot.render();
 
-            document.getElementById('ui-global-conclusion-content').innerHTML = '<strong>横向对比综合建议：</strong><br>在此输入各点位优劣势总结与最终投资建议排序...';
+            document.getElementById('ui-global-conclusion-content').innerHTML = comparisonData.globalConclusionHtml;
 
             buildSwitcher();
-            switchLocation('C'); // Default to C
+            switchLocation(currentLoc);
         }
 
         // ----------------------------------------
@@ -823,7 +879,8 @@
         // ----------------------------------------
         function buildSwitcher() {
             const container = document.getElementById('loc-switcher');
-            ['A', 'B', 'C'].forEach(key => {
+            container.innerHTML = '';
+            Object.keys(locationData).forEach(key => {
                 const btn = document.createElement('button');
                 btn.className = 'loc-btn';
                 btn.id = `btn-loc-${key}`;
@@ -864,6 +921,7 @@
             if(data.circles) renderConcentricCircles(map, data.latlng, data.circles);
             if(data.pois) renderPOIs(map, data.pois);
             if(data.heatData) renderHeatMap(map, data.heatData);
+            setLegendItems(data.legendItems || []);
 
             // Update Flyout styling
             const flyout = document.getElementById('ui-flyout');
@@ -882,8 +940,10 @@
 
             // Update Texts
             document.getElementById('ui-intent').innerHTML = data.intent;
+            document.getElementById('ui-metric1-label').innerText = data.metric1Label || '日均客流触达';
             document.getElementById('ui-metric1-val').innerHTML = data.metric1;
             document.getElementById('ui-metric1-sub').innerHTML = data.m1sub;
+            document.getElementById('ui-metric2-label').innerText = data.metric2Label || '溢价转化率';
             document.getElementById('ui-metric2-val').innerHTML = data.metric2;
             document.getElementById('ui-metric2-sub').innerHTML = data.m2sub;
             document.getElementById('ui-insight1').innerHTML = data.insight1;
@@ -899,7 +959,9 @@
             });
             document.getElementById('ui-progress-bars').innerHTML = progressHtml;
 
+            document.getElementById('ui-finance1-label').innerText = data.finance1Label || '预测保底租金';
             document.getElementById('ui-finance1').innerHTML = data.finance1;
+            document.getElementById('ui-finance2-label').innerText = data.finance2Label || '死亡平衡点';
             document.getElementById('ui-finance2').innerHTML = data.finance2;
             document.getElementById('ui-insight3').innerHTML = data.insight3;
 

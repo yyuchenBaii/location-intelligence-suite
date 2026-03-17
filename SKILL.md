@@ -16,7 +16,13 @@ The value of this skill is not generic analysis. It is a strict workflow:
 
 ## First Response
 
-Before doing analysis, check whether `AMAP_WEB_KEY` is available.
+Before doing analysis, check whether `AMAP_WEB_KEY` is available. If the task will end in a full HTML report, also verify whether the JS map placeholders can be replaced with the user's real web key and security code.
+
+Required env vars for full real-data HTML delivery:
+
+- `AMAP_WEB_KEY`
+- `AMAP_JSAPI_KEY`
+- `AMAP_SEC_CODE`
 
 - If the key is missing, tell the user that real AMap-backed analysis is unavailable and offer two paths:
   - provide the key so the skill can fetch real location data
@@ -39,8 +45,14 @@ See [references/routing-and-output.md](references/routing-and-output.md) for the
 
 When working in real-data mode and the location has been identified, do not invent numeric facts. Run the local scripts in this order:
 
-1. `python scripts/fetch_location_context.py "<lng,lat>"`
-2. `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>"`
+1. If the user gives a vague address or mall name, resolve it first:
+   `python scripts/resolve_location.py "<query>" "<city>"`
+2. Run location context:
+   `python scripts/fetch_location_context.py "<lng,lat>"`
+3. Run the relevant POI scan:
+   - point scan: `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>"`
+   - district scan: `python scripts/fetch_amap_poi.py "<business_keyword>" --mode text --adcode <adcode>`
+   - bounded commercial body scan: `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>" --mode polygon --polygon "<polyline>"`
 
 If a script fails, a path is wrong, or the API returns insufficient data, explain the limitation to the user instead of fabricating numbers.
 
@@ -53,6 +65,8 @@ See [references/data-contracts.md](references/data-contracts.md) for:
 ## Report Generation Rules
 
 Every full assessment should end in an HTML report, not just a plain Markdown summary.
+
+Do not freehand-edit large sections of HTML when the report can be generated from structured data.
 
 Before generating any HTML, read the relevant local template:
 
@@ -70,6 +84,13 @@ See [references/template-rules.md](references/template-rules.md) for:
 - strict multi-location `locationData` replacement rules
 - map data injection requirements
 - final reminder text about JSAPI key / security code
+
+Use [references/report-payloads.md](references/report-payloads.md) and the local builder:
+
+1. run the AMap data scripts
+2. run `python scripts/assemble_report_payload.py single spec.json payload.json` or `python scripts/assemble_report_payload.py compare spec.json payload.json`
+3. run `python scripts/build_report.py single payload.json output.html` or `python scripts/build_report.py compare payload.json output.html`
+4. return the absolute output path
 
 ## Output Standard
 

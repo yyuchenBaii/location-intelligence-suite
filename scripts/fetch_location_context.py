@@ -1,211 +1,230 @@
-import os
-import sys
 import json
-import ssl
-import urllib.request
-from urllib.parse import urlencode
+import sys
 
-# macOS Python 3.12 SSL workaround
-_SSL_CTX = ssl._create_unverified_context()
-
-# 【使用说明】
-# 地段画像脚本 — 调用逆地理编码 + 步行路径规划，生成选址地段的客观上下文信息
-# 用法：python fetch_location_context.py "<经度,纬度>"
-# 输出：行政区、所属商圈、周边地标、到最近地铁口的步行时长及截流判定
-
-AMAP_WEB_KEY = os.environ.get("AMAP_WEB_KEY")
+from amap_client import (
+    direction_driving,
+    direction_transit,
+    direction_walking,
+    place_around,
+    regeo,
+    require_key,
+    parse_duration_distance,
+)
 
 
-def _amap_get(url, params):
-    """通用 GET 请求封装"""
-    req_url = f"{url}?{urlencode(params)}"
-    try:
-        with urllib.request.urlopen(
-            urllib.request.Request(req_url), context=_SSL_CTX, timeout=8
-        ) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except Exception as e:
-        return {"status": "0", "_error": str(e)}
+def _extract_business_areas(addr_comp):
+    biz_areas = addr_comp.get("businessAreas") or []
+    if isinstance(biz_areas, dict):
+        biz_areas = [biz_areas]
+    elif not isinstance(biz_areas, list):
+        biz_areas = []
+    return [item.get("name", "") for item in biz_areas[:3] if isinstance(item, dict) and item.get("name")]
 
 
-def fetch_regeo(location):
-    """逆地理编码：坐标 → 行政区划 + 商圈 + 周边地标"""
-    result = _amap_get(
-        "https://restapi.amap.com/v3/geocode/regeo",
-        {
-            "key": AMAP_WEB_KEY,
-            "location": location,
-            "extensions": "all",   # 含 pois（周边地标）和 businessAreas
-            "radius": 500,
-            "output": "json",
-        }
-    )
+def _extract_landmarks(regeo_data):
+    pois = regeo_data.get("pois") or []
+    if not isinstance(pois, list):
+        pois = []
+    landmarks = []
+    for item in pois[:4]:
+        name = item.get("name", "")
+        dist = item.get("distance", "")
+        direction = item.get("direction", "")
+        if name and dist:
+            landmarks.append(f"{direction}{dist}米处{name}" if direction else f"距{name}{dist}米")
+    return landmarks
+
+
+def fetch_regeo_context(location):
+    result = regeo(location)
     if result.get("status") != "1":
-        return None, result.get("info", "逆地理编码失败")
+        return None, result.get("info") or result.get("_error") or "逆地理编码失败"
 
-    regeo = result.get("regeocode") or {}
-    addr_comp = regeo.get("addressComponent") or {}
+    regeo_data = result.get("regeocode") or {}
+    addr_comp = regeo_data.get("addressComponent") or {}
     if isinstance(addr_comp, list):
         addr_comp = {}
 
     district = addr_comp.get("district") if isinstance(addr_comp.get("district"), str) else ""
+    city = addr_comp.get("city")
+    if isinstance(city, list):
+        city = district
+    province = addr_comp.get("province") if isinstance(addr_comp.get("province"), str) else ""
+    adcode = addr_comp.get("adcode") if isinstance(addr_comp.get("adcode"), str) else ""
     township = addr_comp.get("township") if isinstance(addr_comp.get("township"), str) else ""
     street_num = addr_comp.get("streetNumber") or {}
     if isinstance(street_num, list):
         street_num = {}
     street = street_num.get("street") if isinstance(street_num.get("street"), str) else ""
     number = street_num.get("number") if isinstance(street_num.get("number"), str) else ""
-    formatted = regeo.get("formatted_address") if isinstance(regeo.get("formatted_address"), str) else ""
-
-    # 商圈（可能有多个，取前两个）
-    biz_areas = addr_comp.get("businessAreas") or []
-    if isinstance(biz_areas, dict):
-        biz_areas = [biz_areas]  # Just in case AMap returns a single dict instead of list
-    elif isinstance(biz_areas, str):
-        biz_areas = []
-    biz_area_names = [b.get("name", "") for b in biz_areas[:2] if isinstance(b, dict) and b.get("name")]
-
-    # 周边地标（取前3个，距离最近的知名 POI）
-    pois = regeo.get("pois") or []
-    if not isinstance(pois, list):
-        pois = []
-    landmarks = []
-    for p in pois[:3]:
-        name = p.get("name", "")
-        dist = p.get("distance", "")
-        direction = p.get("direction", "")
-        if name and dist:
-            landmarks.append(f"{direction}{dist}米处{name}" if direction else f"距{name}{dist}米")
+    formatted = regeo_data.get("formatted_address") if isinstance(regeo_data.get("formatted_address"), str) else ""
+    aois = regeo_data.get("aois") if isinstance(regeo_data.get("aois"), list) else []
+    primary_aoi = aois[0] if aois else {}
 
     return {
+        "province": province,
+        "city": city if isinstance(city, str) else district,
         "district": district,
+        "adcode": adcode,
         "township": township,
         "street_address": f"{street}{number}" if street else "",
         "formatted_address": formatted,
-        "business_areas": biz_area_names,
-        "nearby_landmarks": landmarks,
+        "business_areas": _extract_business_areas(addr_comp),
+        "nearby_landmarks": _extract_landmarks(regeo_data),
+        "aoi_name": primary_aoi.get("name", ""),
+        "aoi_area_sqm": primary_aoi.get("area", ""),
     }, None
 
 
-def fetch_nearest_metro(location):
-    """在 500m 内搜索最近地铁站入口，返回其坐标和名称"""
-    result = _amap_get(
-        "https://restapi.amap.com/v3/place/around",
-        {
-            "key": AMAP_WEB_KEY,
-            "location": location,
-            "keywords": "地铁站",
-            "types": "150500",   # 地铁站类型
-            "radius": 1500,
-            "extensions": "base",
-            "offset": 5,
-            "page": 1,
-            "output": "json",
-            "sortrule": "distance",
-        }
+def fetch_nearest_poi(location, *, keywords=None, types=None, radius=1500):
+    result = place_around(
+        location,
+        keywords=keywords,
+        types=types,
+        radius=radius,
+        extensions="all",
+        offset=5,
+        page=1,
     )
     if result.get("status") != "1":
-        return None, None
+        return None
 
-    pois = result.get("pois", [])
+    pois = result.get("pois") or []
     if not pois:
-        return None, None
-
-    metro = pois[0]
-    return metro.get("location", ""), metro.get("name", "未知地铁站")
+        return None
+    return pois[0]
 
 
-def fetch_walk_time(origin, destination):
-    """步行路径规划：返回步行时长（分钟）和距离（米）"""
-    result = _amap_get(
-        "https://restapi.amap.com/v3/direction/walking",
-        {
-            "key": AMAP_WEB_KEY,
-            "origin": origin,
-            "destination": destination,
-            "output": "json",
-        }
-    )
-    if result.get("status") != "1":
-        return None, None
+def fetch_route_profile(origin, destination, city):
+    walking = direction_walking(origin, destination)
+    driving = direction_driving(origin, destination)
+    transit = direction_transit(origin, destination, city) if city else {"status": "0"}
 
-    try:
-        route = result.get("route", {}).get("paths", [])[0]
-        if isinstance(route, list) or not route: return None, None
-        duration_sec = int(route.get("duration", 0))
-        distance_m = int(route.get("distance", 0))
-        return round(duration_sec / 60, 1), distance_m
-    except (KeyError, IndexError, ValueError, TypeError):
-        return None, None
+    walking_path = (walking.get("route") or {}).get("paths") or []
+    driving_path = (driving.get("route") or {}).get("paths") or []
+    transit_path = (transit.get("route") or {}).get("transits") or []
+
+    walk_min, walk_m = parse_duration_distance(walking_path[0]) if walking_path else (None, None)
+    drive_min, drive_m = parse_duration_distance(driving_path[0]) if driving_path else (None, None)
+    transit_min, transit_m = parse_duration_distance(transit_path[0]) if transit_path else (None, None)
+
+    return {
+        "walking_minutes": walk_min,
+        "walking_meters": walk_m,
+        "driving_minutes": drive_min,
+        "driving_meters": drive_m,
+        "transit_minutes": transit_min,
+        "transit_meters": transit_m,
+    }
+
 
 def fetch_poi_count(location, types, radius=500):
-    """搜索周边指定类型的 POI 数量"""
-    result = _amap_get(
-        "https://restapi.amap.com/v3/place/around",
-        {
-            "key": AMAP_WEB_KEY,
-            "location": location,
-            "types": types,
-            "radius": radius,
-            "extensions": "base",
-            "offset": 1,
-            "page": 1,
-            "output": "json",
-        }
+    result = place_around(
+        location,
+        types=types,
+        radius=radius,
+        extensions="base",
+        offset=1,
+        page=1,
     )
     if result.get("status") != "1":
         return 0
     return int(result.get("count", 0))
 
 
-def fetch_location_context(location):
-    """
-    主函数：聚合逆地理编码 + 最近地铁步行时长
-    :param location: "经度,纬度" 字符串
-    """
-    # Step 1: 逆地理编码
-    regeo_data, err = fetch_regeo(location)
-    if err:
-        return {"error": f"逆地理编码失败: {err}"}
-
-    # Step 2: 找最近地铁站入口
-    metro_loc, metro_name = fetch_nearest_metro(location)
-
-    metro_info = {}
-    if metro_loc:
-        walk_min, walk_m = fetch_walk_time(location, metro_loc)
-        if walk_min is not None:
-            metro_info = {
-                "nearest_metro": metro_name,
-                "metro_walk_minutes": walk_min,
-                "metro_walk_meters": walk_m,
-                # 核心判定：步行≤5分钟 = 地铁截流位（高客流），>5分钟 = 非截流位
-                "metro_flow_capture": walk_min <= 5,
-                "metro_flow_label": (
-                    f"✅ 地铁截流位（步行{walk_min}分钟）"
-                    if walk_min <= 5 else
-                    f"⚠️ 非截流位（步行{walk_min}分钟，地铁自然客流有限）"
-                ),
-            }
-        else:
-            metro_info = {"nearest_metro": metro_name, "metro_walk_minutes": None}
-    else:
-        metro_info = {
+def _metro_summary(nearest_metro, route_profile):
+    if not nearest_metro:
+        return {
             "nearest_metro": "1500m内无地铁站",
             "metro_flow_capture": False,
             "metro_flow_label": "❌ 无地铁覆盖，客流依赖周边自然人流",
         }
 
-    # Step 3: 获取写字楼与住宅区数量，进行潮汐推演
-    office_count = fetch_poi_count(location, "120200", radius=500) # 写字楼
-    residential_count = fetch_poi_count(location, "120300", radius=500) # 住宅区
+    walk_min = route_profile.get("walking_minutes")
+    summary = {
+        "nearest_metro": nearest_metro.get("name", "未知地铁站"),
+        "nearest_metro_location": nearest_metro.get("location", ""),
+        "metro_access": route_profile,
+    }
+    if walk_min is None:
+        summary["metro_flow_capture"] = False
+        summary["metro_flow_label"] = "⚠️ 地铁站已识别，但步行路径计算失败"
+        return summary
+
+    summary["metro_walk_minutes"] = walk_min
+    summary["metro_walk_meters"] = route_profile.get("walking_meters")
+    summary["metro_flow_capture"] = walk_min <= 5
+    summary["metro_flow_label"] = (
+        f"✅ 地铁截流位（步行{walk_min}分钟）"
+        if walk_min <= 5
+        else f"⚠️ 非截流位（步行{walk_min}分钟，地铁自然客流有限）"
+    )
+    return summary
+
+
+def _anchor_summary(anchor, route_profile):
+    if not anchor:
+        return {
+            "nearest_commercial_anchor": "1500m内未识别大型商业锚点",
+            "anchor_access_label": "周边未识别出明确商业综合体锚点",
+        }
+
+    walk = route_profile.get("walking_minutes")
+    drive = route_profile.get("driving_minutes")
+    transit = route_profile.get("transit_minutes")
+    parts = []
+    if walk is not None:
+        parts.append(f"步行 {walk} 分钟")
+    if drive is not None:
+        parts.append(f"驾车 {drive} 分钟")
+    if transit is not None:
+        parts.append(f"公交 {transit} 分钟")
+
+    return {
+        "nearest_commercial_anchor": anchor.get("name", ""),
+        "nearest_commercial_anchor_distance_m": int(anchor.get("distance", 0)) if str(anchor.get("distance", "")).isdigit() else None,
+        "nearest_commercial_anchor_location": anchor.get("location", ""),
+        "nearest_commercial_anchor_address": anchor.get("address", ""),
+        "anchor_access": route_profile,
+        "anchor_access_label": " / ".join(parts) if parts else "商业锚点路径信息暂缺",
+    }
+
+
+def fetch_location_context(location):
+    key_error = require_key()
+    if key_error:
+        return key_error
+
+    regeo_data, err = fetch_regeo_context(location)
+    if err:
+        return {"error": f"逆地理编码失败: {err}"}
+
+    city = regeo_data.get("city") or regeo_data.get("district")
+
+    nearest_metro = fetch_nearest_poi(location, keywords="地铁站", types="150500", radius=1500)
+    metro_route = (
+        fetch_route_profile(location, nearest_metro.get("location"), city)
+        if nearest_metro and nearest_metro.get("location")
+        else {}
+    )
+
+    nearest_anchor = fetch_nearest_poi(location, keywords="购物中心|商业广场|商场", radius=2000)
+    anchor_route = (
+        fetch_route_profile(location, nearest_anchor.get("location"), city)
+        if nearest_anchor and nearest_anchor.get("location")
+        else {}
+    )
+
+    office_count = fetch_poi_count(location, "120200", radius=500)
+    residential_count = fetch_poi_count(location, "120300", radius=500)
 
     return {
         **regeo_data,
-        **metro_info,
+        **_metro_summary(nearest_metro, metro_route),
+        **_anchor_summary(nearest_anchor, anchor_route),
         "office_count": office_count,
         "residential_count": residential_count,
-        "_note": "以上数据来源：高德逆地理编码 + 步行路径规划，均为真实 API 数据，可溯源验证。",
+        "_note": "以上数据来源：高德逆地理编码、POI 搜索、步行/驾车/公交路径规划，均为真实 API 数据。",
     }
 
 
@@ -214,6 +233,5 @@ if __name__ == "__main__":
         print(json.dumps({"error": "用法: python fetch_location_context.py <经度,纬度>"}))
         sys.exit(1)
 
-    loc = sys.argv[1]
-    result = fetch_location_context(loc)
+    result = fetch_location_context(sys.argv[1])
     print(json.dumps(result, ensure_ascii=False, indent=2))
