@@ -90,7 +90,10 @@ Use [references/report-payloads.md](references/report-payloads.md) and the local
 1. run the AMap data scripts
 2. run `python scripts/assemble_report_payload.py single spec.json payload.json` or `python scripts/assemble_report_payload.py compare spec.json payload.json`
 3. run `python scripts/build_report.py single payload.json output.html` or `python scripts/build_report.py compare payload.json output.html`
-4. return the absolute output path
+4. if build validation fails, fix the payload or template issue and rebuild; do not deliver the broken HTML
+5. return the absolute output path
+
+Success means the final HTML passes template-structure validation. A file that does not preserve the tabbed layout or required payload markers is not an acceptable deliverable.
 
 ## Output Standard
 

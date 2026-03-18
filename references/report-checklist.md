@@ -14,3 +14,4 @@ Use this checklist before final delivery.
 - Confirm no unsupported certainty was introduced for inferred metrics.
 - Confirm the HTML does not contain Markdown bold markers like `**text**`.
 - Confirm the user received the one-time JSAPI/SecCode reminder if HTML was delivered.
+- Confirm the generated HTML passes `python scripts/validate_report.py <single|compare> <report.html>`.

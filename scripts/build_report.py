@@ -3,6 +3,8 @@ import os
 import sys
 from pathlib import Path
 
+from validate_report import validate_compare, validate_single
+
 
 ROOT = Path(__file__).resolve().parent.parent
 SINGLE_TEMPLATE = ROOT / "resources" / "report_template.html"
@@ -121,6 +123,10 @@ def main(argv):
 
         output = Path(output_path).resolve()
         output.write_text(html, encoding="utf-8")
+        errors = validate_single(html) if mode == "single" else validate_compare(html)
+        if errors:
+            output.unlink(missing_ok=True)
+            raise ValueError("validation failed after build: " + "; ".join(errors))
         print(str(output))
         return 0
     except Exception as exc:

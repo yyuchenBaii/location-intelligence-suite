@@ -7,6 +7,7 @@ Recommended end-to-end flow:
 1. run the AMap scripts and save their JSON output
 2. run `scripts/assemble_report_payload.py` to build a dense payload
 3. run `scripts/build_report.py` to generate final HTML
+4. run `scripts/validate_report.py` or rely on the built-in validation in `build_report.py`
 
 ## Single Report
 
