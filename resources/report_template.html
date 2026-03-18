@@ -241,11 +241,11 @@
             top: 20px;
             right: 20px;
             width: 320px;
-            background: #ffffff;
+            background: var(--panel-bg);
             border: 2px solid var(--danger);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.15);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
             z-index: 20;
         }
 
@@ -530,10 +530,10 @@
         .sidebar-conclusion {
             margin-top: auto;
             border-top: 1px solid var(--panel-border);
-            background: #f1f5f9;
+            background: var(--panel-bg);
             padding: 20px;
             flex-shrink: 0;
-            display: none; /* 默认隐藏，仅在有多点对比需求时由逻辑开启或LLM填充内容 */
+            display: block;
         }
         .sc-title { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
         .sc-content { font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
