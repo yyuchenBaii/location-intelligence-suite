@@ -1,10 +1,14 @@
 # Data Contracts
 
-Use the local scripts as the source of truth when real-data mode is enabled.
+Use the unified upstream contract as the source of truth when real-data mode is enabled.
+
+See [upstream-output-contract.md](upstream-output-contract.md) for the normalized provider-agnostic schema.
+
+The local scripts remain valid, but they should now be treated as one adapter path that can be normalized into the same contract as upstream AMap skills.
 
 ## Script Order
 
-Run these in order:
+Preferred order:
 
 1. optional resolve step:
    `python scripts/resolve_location.py "<query>" "<city>"`
@@ -13,6 +17,10 @@ Run these in order:
    - `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>"`
    - `python scripts/fetch_amap_poi.py "<business_keyword>" --mode text --adcode <adcode>`
    - `python scripts/fetch_amap_poi.py "<lng,lat>" "<business_keyword>" --mode polygon --polygon "<polyline>"`
+4. normalize the outputs:
+   `python scripts/build_upstream_contract.py contract.json --context-path context.json --poi-path poi.json --lnglat "<lng,lat>"`
+
+If upstream skills are available, they may replace steps 1-3 as long as their outputs are normalized into the same contract before downstream analysis begins.
 
 ## `fetch_location_context.py`
 

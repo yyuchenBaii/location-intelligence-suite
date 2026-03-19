@@ -7,6 +7,107 @@ def _load_json(path_str):
     return json.loads(Path(path_str).read_text(encoding="utf-8"))
 
 
+def _point_from_contract(contract):
+    location = contract.get("location") or {}
+    point = location.get("point") or {}
+    lng = point.get("lng")
+    lat = point.get("lat")
+    if lng in (None, "") or lat in (None, ""):
+        raise ValueError("upstream contract must include location.point.lng and location.point.lat")
+    return [float(lng), float(lat)]
+
+
+def _context_from_contract(contract):
+    location = contract.get("location") or {}
+    mobility = contract.get("mobility") or {}
+    supply = contract.get("supply") or {}
+    metro = mobility.get("nearest_metro") or {}
+    metro_capture = mobility.get("metro_capture") or {}
+    anchor = mobility.get("nearest_commercial_anchor") or {}
+    aoi = location.get("aoi") or {}
+
+    return {
+        "province": location.get("province", ""),
+        "city": location.get("city", ""),
+        "district": location.get("district", ""),
+        "adcode": location.get("adcode", ""),
+        "township": location.get("township", ""),
+        "street_address": location.get("street_address", ""),
+        "formatted_address": location.get("formatted_address", ""),
+        "business_areas": location.get("business_areas") or [],
+        "nearby_landmarks": location.get("nearby_landmarks") or [],
+        "aoi_name": aoi.get("name", ""),
+        "aoi_area_sqm": aoi.get("area_sqm", ""),
+        "nearest_metro": metro.get("name", "") or "1500m内无地铁站",
+        "nearest_metro_location": metro.get("location", ""),
+        "metro_walk_minutes": metro.get("walk_minutes"),
+        "metro_walk_meters": metro.get("walk_meters"),
+        "metro_flow_capture": bool(metro_capture.get("captured")),
+        "metro_flow_label": metro_capture.get("label", ""),
+        "metro_access": mobility.get("metro_access") or {},
+        "nearest_commercial_anchor": anchor.get("name", "") or "1500m内未识别大型商业锚点",
+        "nearest_commercial_anchor_distance_m": anchor.get("distance_m"),
+        "nearest_commercial_anchor_location": anchor.get("location", ""),
+        "nearest_commercial_anchor_address": anchor.get("address", ""),
+        "anchor_access": mobility.get("anchor_access") or {},
+        "anchor_access_label": mobility.get("anchor_access_label", ""),
+        "office_count": supply.get("office_count_500m", 0),
+        "residential_count": supply.get("residential_count_500m", 0),
+        "_note": contract.get("notes") or "数据已通过统一 upstream contract 注入。",
+    }
+
+
+def _poi_from_contract(contract):
+    competition = contract.get("competition") or {}
+    nearest = competition.get("nearest_competitor") or {}
+    map_points = competition.get("map_points") or []
+    top_threats = competition.get("top_threats") or []
+
+    return {
+        "search_keyword": competition.get("keyword", ""),
+        "search_mode": competition.get("search_mode"),
+        "search_radius_meters": competition.get("search_radius_meters"),
+        "search_polygon": competition.get("search_polygon"),
+        "search_city": competition.get("search_city"),
+        "search_adcode": competition.get("search_adcode"),
+        "total_competitors_found": competition.get("total_poi", 0),
+        "fetched_sample_size": competition.get("fetched_sample_size", 0),
+        "closest_competitor": {
+            "id": nearest.get("id", ""),
+            "name": nearest.get("name", ""),
+            "distance_m": nearest.get("distance_m"),
+            "rating": nearest.get("rating", "暂无"),
+            "avg_cost_yuan": nearest.get("avg_cost_yuan", "暂无"),
+            "business_area": nearest.get("business_area", ""),
+            "location": nearest.get("location", ""),
+            "detail": nearest.get("detail") or {},
+        },
+        "competition_level": competition.get("level_label"),
+        "price_distribution": competition.get("price_distribution") or {},
+        "price_insight": competition.get("price_insight"),
+        "rating_avg": competition.get("rating_avg"),
+        "high_quality_count": competition.get("high_quality_count", 0),
+        "top_threats": top_threats,
+        "top_threats_count": competition.get("top_threats_count", len(top_threats)),
+        "business_areas_covered": competition.get("business_areas_covered") or [],
+        "top_competitors_for_map": map_points,
+    }
+
+
+def _load_analysis_inputs(entry):
+    if entry.get("upstream_contract_path"):
+        contract = _load_json(entry["upstream_contract_path"])
+        context = _context_from_contract(contract)
+        poi = _poi_from_contract(contract)
+        lnglat = _point_from_contract(contract)
+        return context, poi, lnglat, contract
+
+    context = _load_json(entry["context_path"])
+    poi = _load_json(entry["poi_path"])
+    lnglat = _parse_lnglat(entry["lnglat"])
+    return context, poi, lnglat, None
+
+
 def _parse_lnglat(value):
     if isinstance(value, list) and len(value) == 2:
         return [float(value[0]), float(value[1])]
@@ -388,20 +489,27 @@ def _decision_reason(score, grade_class, context, poi):
 
 
 def _single_payload(spec):
-    context = _load_json(spec["context_path"])
-    poi = _load_json(spec["poi_path"])
+    context, poi, lnglat, contract = _load_analysis_inputs(spec)
     if context.get("error"):
         raise ValueError(f"context error: {context['error']}")
     if poi.get("error"):
         raise ValueError(f"poi error: {poi['error']}")
 
-    lnglat = _parse_lnglat(spec["lnglat"])
     radar = _radar_from_data(context, poi)
     score = _summary_score(radar)
     grade, grade_class = _grade_from_score(score)
     color = _risk_color(grade_class)
-    location_name = spec.get("location_name") or _location_label(spec, context)
-    business_type = spec.get("business_type") or poi.get("search_keyword") or "待分析业态"
+    location_name = (
+        spec.get("location_name")
+        or ((contract or {}).get("location") or {}).get("label")
+        or _location_label(spec, context)
+    )
+    business_type = (
+        spec.get("business_type")
+        or ((contract or {}).get("request") or {}).get("business_type")
+        or poi.get("search_keyword")
+        or "待分析业态"
+    )
 
     nearest_name, dist, rating, cost = _nearest_competitor_line(poi)
 
@@ -485,8 +593,7 @@ def _single_payload(spec):
 
 
 def _location_entry(entry, best_score):
-    context = _load_json(entry["context_path"])
-    poi = _load_json(entry["poi_path"])
+    context, poi, lnglat, contract = _load_analysis_inputs(entry)
     if context.get("error"):
         raise ValueError(f"context error for {entry.get('id', '?')}: {context['error']}")
     if poi.get("error"):
@@ -495,9 +602,14 @@ def _location_entry(entry, best_score):
     radar = _radar_from_data(context, poi)
     score = _summary_score(radar)
     grade, grade_class = _grade_from_score(score)
-    business_type = entry.get("business_type") or poi.get("search_keyword") or "待分析业态"
+    business_type = (
+        entry.get("business_type")
+        or ((contract or {}).get("request") or {}).get("business_type")
+        or poi.get("search_keyword")
+        or "待分析业态"
+    )
     nearest_name, dist, rating, cost = _nearest_competitor_line(poi)
-    location_name = entry["name"]
+    location_name = entry.get("name") or ((contract or {}).get("location") or {}).get("label") or "待分析点位"
 
     return {
         "computed_score": score,
@@ -505,7 +617,7 @@ def _location_entry(entry, best_score):
             "id": entry["id"],
             "name": location_name,
             "recommend": score == best_score,
-            "latlng": _parse_lnglat(entry["lnglat"]),
+            "latlng": lnglat,
             "score": score,
             "grade": grade,
             "gradeClass": grade_class,

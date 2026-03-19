@@ -4,10 +4,11 @@ Use `scripts/build_report.py` to generate final HTML from structured payloads.
 
 Recommended end-to-end flow:
 
-1. run the AMap scripts and save their JSON output
-2. run `scripts/assemble_report_payload.py` to build a dense payload
-3. run `scripts/build_report.py` to generate final HTML
-4. run `scripts/validate_report.py` or rely on the built-in validation in `build_report.py`
+1. gather raw upstream data from upstream skills or fallback local scripts
+2. normalize it into a unified upstream contract
+3. run `scripts/assemble_report_payload.py` to build a dense payload
+4. run `scripts/build_report.py` to generate final HTML
+5. run `scripts/validate_report.py` or rely on the built-in validation in `build_report.py`
 
 ## Single Report
 
@@ -34,12 +35,21 @@ The payload must be assigned to `reportData` and should include:
 
 The single-report `spec.json` should include:
 
-- `lnglat`
+- preferred: `upstream_contract_path`
+- legacy fallback: `lnglat`, `context_path`, `poi_path`
 - `location_name`
 - `business_type`
-- `context_path`
-- `poi_path`
 - optional rent / breakeven / title overrides
+
+Recommended single spec:
+
+```json
+{
+  "location_name": "上海静安寺",
+  "business_type": "咖啡馆",
+  "upstream_contract_path": "contract.json"
+}
+```
 
 ## Comparison Report
 
@@ -70,10 +80,20 @@ The compare `spec.json` should include a `locations` array, and each item should
 
 - `id`
 - `name`
-- `lnglat`
-- `context_path`
-- `poi_path`
+- preferred: `upstream_contract_path`
+- legacy fallback: `lnglat`, `context_path`, `poi_path`
 - optional rent / breakeven / business_type overrides
+
+Recommended compare item:
+
+```json
+{
+  "id": "jing-an-temple",
+  "name": "静安寺",
+  "business_type": "咖啡馆",
+  "upstream_contract_path": "jingan-contract.json"
+}
+```
 
 ## Map Keys
 
