@@ -25,8 +25,8 @@ Before doing analysis, perform a short preflight:
 
 Target upstream skills:
 
-- `amap-lbs-skill`: https://clawhub.ai/lbs-amap/amap-lbs-skill
-- `amap-jsapi-skill`: https://clawhub.ai/lbs-amap/amap-jsapi-skill
+- `amap-lbs-skill`: https://ai.skillatlas.cn/skills/amap-maps
+- `amap-jsapi-skill`: https://ai.skillatlas.cn/skills/amap-jsapi-skill
 
 If either upstream skill is missing, do not pretend it was installed automatically.
 
